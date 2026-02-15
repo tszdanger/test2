@@ -1,0 +1,903 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>财政体系运行机制数据流图 2015-2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e6edf3;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: #1e2a3a;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #30363d;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #58a6ff, #a371f7, #58a6ff);
+            background-size: 200% 100%;
+            animation: gradient 3s ease infinite;
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #58a6ff;
+            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: #8b949e;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* 年份选择器 */
+        .year-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(88, 166, 255, 0.1);
+            border-radius: 12px;
+            border: 1px solid #30363d;
+        }
+
+        .year-btn {
+            background: rgba(88, 166, 255, 0.2);
+            color: #58a6ff;
+            border: 2px solid #58a6ff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .year-btn:hover {
+            background: rgba(88, 166, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .year-btn.active {
+            background: linear-gradient(135deg, #58a6ff, #a371f7);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.4);
+        }
+
+        .year-label {
+            color: #8b949e;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .flow-diagram {
+            position: relative;
+            width: 100%;
+            min-height: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 节点样式 */
+        .node {
+            position: absolute;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 2px solid transparent;
+            backdrop-filter: blur(10px);
+            min-width: 150px;
+            z-index: 2;
+        }
+
+        .node:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(88, 166, 255, 0.4);
+            z-index: 10;
+        }
+
+        .node-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .node-amount {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 4px 0;
+            color: #fff;
+        }
+
+        .node-detail {
+            font-size: 9px;
+            opacity: 0.8;
+            margin-top: 3px;
+        }
+
+        /* 收入源节点 */
+        .revenue-node {
+            background: linear-gradient(135deg, #3fb950 0%, #58a6ff 100%);
+            color: white;
+            border-color: #3fb950;
+        }
+
+        /* 中央财政节点 */
+        .central-node {
+            background: linear-gradient(135deg, #f85149 0%, #fa8c16 100%);
+            color: white;
+            border-color: #f85149;
+        }
+
+        /* 地方财政节点 */
+        .local-node {
+            background: linear-gradient(135deg, #58a6ff 0%, #39c5cf 100%);
+            color: white;
+            border-color: #58a6ff;
+        }
+
+        /* 债务节点 */
+        .debt-node {
+            background: linear-gradient(135deg, #a371f7 0%, #d299c2 100%);
+            color: white;
+            border-color: #a371f7;
+            border-style: dashed;
+        }
+
+        /* 支出节点 */
+        .expenditure-node {
+            background: linear-gradient(135deg, #fa8c16 0%, #d29922 100%);
+            color: white;
+            border-color: #fa8c16;
+        }
+
+        /* 转移支付节点 */
+        .transfer-node {
+            background: linear-gradient(135deg, #39c5cf 0%, #3fb950 100%);
+            color: white;
+            border-color: #39c5cf;
+        }
+
+        /* 连接线 */
+        .connection {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+        .arrow-line {
+            stroke-width: 2.5;
+            fill: none;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .solid-line { stroke: #3fb950; }
+        .transfer-line { 
+            stroke: #39c5cf; 
+            stroke-dasharray: 8,4;
+            animation: dash-flow 2s linear infinite;
+        }
+        .debt-line { 
+            stroke: #a371f7; 
+            stroke-dasharray: 6,6;
+            animation: dash-flow 3s linear infinite;
+        }
+        .expenditure-line { stroke: #fa8c16; stroke-width: 2; }
+
+        @keyframes dash-flow {
+            to { stroke-dashoffset: -20; }
+        }
+
+        /* 文本标签 */
+        .flow-label {
+            position: absolute;
+            background: rgba(30, 42, 58, 0.95);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 500;
+            color: #e6edf3;
+            border: 1px solid #30363d;
+            white-space: nowrap;
+            backdrop-filter: blur(5px);
+            z-index: 5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .flow-label-big {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 8px 12px;
+        }
+
+        /* 图例 */
+        .legend {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(30, 42, 58, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid #30363d;
+            z-index: 10;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #58a6ff;
+            font-size: 14px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            margin-right: 10px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        /* 关键指标面板 */
+        .key-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: rgba(30, 42, 58, 0.95);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #30363d;
+            transition: all 0.3s;
+        }
+
+        .metric-card:hover {
+            border-color: #58a6ff;
+            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.2);
+        }
+
+        .metric-label {
+            color: #8b949e;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            color: #58a6ff;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .metric-change {
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .metric-change.positive {
+            color: #3fb950;
+        }
+
+        .metric-change.negative {
+            color: #f85149;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(30, 42, 58, 0.98);
+            border: 1px solid #58a6ff;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            display: none;
+            z-index: 1000;
+            max-width: 300px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+
+        .tooltip.show {
+            display: block;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1400px) {
+            .container { padding: 20px; }
+            .flow-diagram { min-height: 1000px; }
+            h1 { font-size: 28px; }
+            .node { font-size: 10px; padding: 8px 12px; min-width: 130px; }
+        }
+
+        @media (max-width: 768px) {
+            .flow-diagram { min-height: 800px; }
+            .node { font-size: 9px; padding: 6px 10px; min-width: 110px; }
+            h1 { font-size: 24px; }
+            .year-selector { flex-wrap: wrap; }
+            .legend { position: relative; margin-top: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>中国财政体系运行机制数据流图</h1>
+            <p class="subtitle">2015-2025年完整数据 | 整合税收分成、转移支付、债务融资、房地产税费与土地出让金的完整财政循环</p>
+        </div>
+
+        <!-- 年份选择器 -->
+        <div class="year-selector">
+            <span class="year-label">选择年份：</span>
+            <button class="year-btn" onclick="changeYear(2015)">2015</button>
+            <button class="year-btn" onclick="changeYear(2016)">2016</button>
+            <button class="year-btn" onclick="changeYear(2017)">2017</button>
+            <button class="year-btn" onclick="changeYear(2018)">2018</button>
+            <button class="year-btn" onclick="changeYear(2019)">2019</button>
+            <button class="year-btn" onclick="changeYear(2020)">2020</button>
+            <button class="year-btn" onclick="changeYear(2021)">2021</button>
+            <button class="year-btn" onclick="changeYear(2022)">2022</button>
+            <button class="year-btn" onclick="changeYear(2023)">2023</button>
+            <button class="year-btn" onclick="changeYear(2024)">2024</button>
+            <button class="year-btn active" onclick="changeYear(2025)">2025</button>
+        </div>
+
+        <!-- 关键指标 -->
+        <div class="key-metrics" id="keyMetrics"></div>
+        
+        <div class="flow-diagram" id="flowDiagram"></div>
+
+        <!-- 图例 -->
+        <div class="legend">
+            <div class="legend-title">图例说明</div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #3fb950 0%, #58a6ff 100%);"></div>
+                <span>税收收入源</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #f85149 0%, #fa8c16 100%);"></div>
+                <span>中央财政</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #58a6ff 0%, #39c5cf 100%);"></div>
+                <span>地方财政</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #39c5cf 0%, #3fb950 100%);"></div>
+                <span>转移支付</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #a371f7 0%, #d299c2 100%); border-style: dashed;"></div>
+                <span>债务融资</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #fa8c16 0%, #d29922 100%);"></div>
+                <span>财政支出</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 工具提示 -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // 完整数据
+        const yearData = {
+            2015: {
+                vat: 3.11, consumeTax: 1.05, corpTax: 2.71, personalTax: 0.86,
+                totalTax: 12.49, budgetRev: 15.22, budgetExp: 17.58,
+                fundRev: 4.23, landTransfer: 3.37, localBudget: 8.30,
+                realEstateTax: 1.42, centralRev: 6.92, localRev: 8.30,
+                nationalBonds: 2.10, localBonds: 3.80, totalBonds: 5.90,
+                deficit: 2.36, debtInterest: 0.29, interestRate: 1.88,
+                netFinancing: null, hiddenDebt: null, explicitDebt: null
+            },
+            2016: {
+                vat: 4.07, consumeTax: 1.02, corpTax: 2.89, personalTax: 1.01,
+                totalTax: 13.04, budgetRev: 15.96, budgetExp: 18.78,
+                fundRev: 4.66, landTransfer: 3.75, localBudget: 8.72,
+                realEstateTax: 1.63, centralRev: 7.24, localRev: 8.72,
+                nationalBonds: 2.90, localBonds: 6.00, totalBonds: 8.90,
+                deficit: 2.83, debtInterest: 0.33, interestRate: 2.07,
+                netFinancing: null, hiddenDebt: null, explicitDebt: null
+            },
+            2017: {
+                vat: 5.64, consumeTax: 1.02, corpTax: 3.21, personalTax: 1.20,
+                totalTax: 14.44, budgetRev: 17.26, budgetExp: 20.33,
+                fundRev: 6.15, landTransfer: 5.21, localBudget: 9.14,
+                realEstateTax: 1.25, centralRev: 8.11, localRev: 9.14,
+                nationalBonds: 3.98, localBonds: 4.36, totalBonds: 8.34,
+                deficit: 3.08, debtInterest: 0.38, interestRate: 2.19,
+                netFinancing: null, hiddenDebt: null, explicitDebt: null
+            },
+            2018: {
+                vat: 6.15, consumeTax: 1.06, corpTax: 3.53, personalTax: 1.39,
+                totalTax: 15.64, budgetRev: 18.34, budgetExp: 22.09,
+                fundRev: 7.54, landTransfer: 6.51, localBudget: 9.79,
+                realEstateTax: 1.63, centralRev: 8.54, localRev: 9.79,
+                nationalBonds: 3.60, localBonds: 4.17, totalBonds: 7.77,
+                deficit: 3.76, debtInterest: 0.73, interestRate: 4.01,
+                netFinancing: null, hiddenDebt: null, explicitDebt: null
+            },
+            2019: {
+                vat: 6.23, consumeTax: 1.26, corpTax: 3.73, personalTax: 1.04,
+                totalTax: 15.80, budgetRev: 19.04, budgetExp: 23.89,
+                fundRev: 8.45, landTransfer: 7.26, localBudget: 10.11,
+                realEstateTax: 1.41, centralRev: 8.93, localRev: 10.11,
+                nationalBonds: 4.16, localBonds: 4.36, totalBonds: 8.52,
+                deficit: 4.85, debtInterest: 0.46, interestRate: 2.40,
+                netFinancing: 4.72, hiddenDebt: null, explicitDebt: null
+            },
+            2020: {
+                vat: 5.68, consumeTax: 1.20, corpTax: 3.64, personalTax: 1.16,
+                totalTax: 15.43, budgetRev: 18.29, budgetExp: 24.56,
+                fundRev: 9.35, landTransfer: 8.41, localBudget: 10.01,
+                realEstateTax: 1.94, centralRev: 8.28, localRev: 10.01,
+                nationalBonds: 7.12, localBonds: 6.40, totalBonds: 13.52,
+                deficit: 6.27, debtInterest: 0.98, interestRate: 5.37,
+                netFinancing: 8.34, hiddenDebt: null, explicitDebt: 25.66
+            },
+            2021: {
+                vat: 6.35, consumeTax: 1.39, corpTax: 4.20, personalTax: 1.40,
+                totalTax: 17.27, budgetRev: 20.25, budgetExp: 24.63,
+                fundRev: 9.80, landTransfer: 8.71, localBudget: 11.11,
+                realEstateTax: 2.08, centralRev: 9.15, localRev: 11.11,
+                nationalBonds: 11.14, localBonds: 7.50, totalBonds: 18.64,
+                deficit: 4.38, debtInterest: 1.05, interestRate: 5.16,
+                netFinancing: 7.02, hiddenDebt: 55.00, explicitDebt: null
+            },
+            2022: {
+                vat: 4.87, consumeTax: 1.67, corpTax: 4.37, personalTax: 1.49,
+                totalTax: 16.66, budgetRev: 20.37, budgetExp: 26.06,
+                fundRev: 7.79, landTransfer: 6.69, localBudget: 10.88,
+                realEstateTax: 1.92, centralRev: 9.49, localRev: 10.88,
+                nationalBonds: 9.60, localBonds: 7.40, totalBonds: 17.00,
+                deficit: 5.69, debtInterest: 1.77, interestRate: 8.68,
+                netFinancing: 7.12, hiddenDebt: 60.00, explicitDebt: 35.07
+            },
+            2023: {
+                vat: 6.93, consumeTax: 1.61, corpTax: 4.11, personalTax: 1.48,
+                totalTax: 18.11, budgetRev: 21.68, budgetExp: 27.46,
+                fundRev: 7.07, landTransfer: 5.80, localBudget: 11.72,
+                realEstateTax: 1.86, centralRev: 9.96, localRev: 11.72,
+                nationalBonds: 11.14, localBonds: 9.34, totalBonds: 20.48,
+                deficit: 5.78, debtInterest: 1.92, interestRate: 8.87,
+                netFinancing: 9.60, hiddenDebt: null, explicitDebt: 40.74
+            },
+            2024: {
+                vat: 6.67, consumeTax: 1.65, corpTax: 4.09, personalTax: 1.45,
+                totalTax: 17.50, budgetRev: 21.97, budgetExp: 28.46,
+                fundRev: 6.21, landTransfer: 4.87, localBudget: 11.93,
+                realEstateTax: 1.85, centralRev: 10.04, localRev: 11.93,
+                nationalBonds: 12.60, localBonds: 9.80, totalBonds: 22.40,
+                deficit: 6.49, debtInterest: 1.29, interestRate: 5.86,
+                netFinancing: 11.30, hiddenDebt: 64.53, explicitDebt: 47.54
+            },
+            2025: {
+                vat: 6.89, consumeTax: 1.69, corpTax: 4.13, personalTax: 1.62,
+                totalTax: 17.64, budgetRev: 21.60, budgetExp: 28.74,
+                fundRev: 5.77, landTransfer: 4.15, localBudget: 12.21,
+                realEstateTax: 1.85, centralRev: 9.40, localRev: 12.21,
+                nationalBonds: 12.60, localBonds: 10.31, totalBonds: 22.91,
+                deficit: 7.14, debtInterest: 1.35, interestRate: 6.24,
+                netFinancing: 13.80, hiddenDebt: null, explicitDebt: 54.80
+            }
+        };
+
+        let currentYear = 2025;
+
+        function formatNumber(num) {
+            return num.toFixed(2);
+        }
+
+        function getYoYChange(current, previous) {
+            if (!previous) return null;
+            return ((current - previous) / previous * 100).toFixed(1);
+        }
+
+        function updateKeyMetrics(year) {
+            const data = yearData[year];
+            const prevData = yearData[year - 1];
+            
+            const metrics = [
+                {
+                    label: '总税收收入',
+                    value: `${formatNumber(data.totalTax)}万亿`,
+                    change: prevData ? getYoYChange(data.totalTax, prevData.totalTax) : null
+                },
+                {
+                    label: '财政赤字',
+                    value: `${formatNumber(data.deficit)}万亿`,
+                    change: prevData ? getYoYChange(data.deficit, prevData.deficit) : null
+                },
+                {
+                    label: '政府债券发行',
+                    value: `${formatNumber(data.totalBonds)}万亿`,
+                    change: prevData ? getYoYChange(data.totalBonds, prevData.totalBonds) : null
+                },
+                {
+                    label: '土地出让金',
+                    value: `${formatNumber(data.landTransfer)}万亿`,
+                    change: prevData ? getYoYChange(data.landTransfer, prevData.landTransfer) : null
+                },
+                {
+                    label: '债务付息率',
+                    value: `${formatNumber(data.interestRate)}%`,
+                    change: prevData ? (data.interestRate - prevData.interestRate).toFixed(2) : null
+                },
+                {
+                    label: '净融资额',
+                    value: data.netFinancing ? `${formatNumber(data.netFinancing)}万亿` : '暂无数据',
+                    change: prevData && data.netFinancing && prevData.netFinancing ? 
+                            getYoYChange(data.netFinancing, prevData.netFinancing) : null
+                }
+            ];
+
+            const metricsHtml = metrics.map(m => `
+                <div class="metric-card">
+                    <div class="metric-label">${m.label}</div>
+                    <div class="metric-value">${m.value}</div>
+                    ${m.change ? `<div class="metric-change ${parseFloat(m.change) >= 0 ? 'positive' : 'negative'}">
+                        ${parseFloat(m.change) >= 0 ? '↑' : '↓'} ${Math.abs(parseFloat(m.change))}%
+                    </div>` : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('keyMetrics').innerHTML = metricsHtml;
+        }
+
+        function updateFlowDiagram(year) {
+            const data = yearData[year];
+            const diagram = document.getElementById('flowDiagram');
+            
+            // 估算中央转移支付（简化计算）
+            const transferPayment = (data.budgetRev - data.centralRev - data.localBudget + 1.5).toFixed(2);
+            
+            diagram.innerHTML = `
+                <!-- 第一层：税收收入源 -->
+                <div class="node revenue-node" style="top: 60px; left: 50px;" 
+                     data-info="${year}年国内增值税${formatNumber(data.vat)}万亿元，央地各50%分成">
+                    <div class="node-title">国内增值税</div>
+                    <div class="node-amount">${formatNumber(data.vat)}万亿</div>
+                    <div class="node-detail">央50% : 地50%</div>
+                </div>
+                
+                <div class="node revenue-node" style="top: 140px; left: 50px;" 
+                     data-info="${year}年国内消费税${formatNumber(data.consumeTax)}万亿元，中央100%">
+                    <div class="node-title">国内消费税</div>
+                    <div class="node-amount">${formatNumber(data.consumeTax)}万亿</div>
+                    <div class="node-detail">央100%</div>
+                </div>
+                
+                <div class="node revenue-node" style="top: 220px; left: 50px;" 
+                     data-info="${year}年企业所得税${formatNumber(data.corpTax)}万亿元，央地60:40分成">
+                    <div class="node-title">企业所得税</div>
+                    <div class="node-amount">${formatNumber(data.corpTax)}万亿</div>
+                    <div class="node-detail">央60% : 地40%</div>
+                </div>
+                
+                <div class="node revenue-node" style="top: 300px; left: 50px;" 
+                     data-info="${year}年个人所得税${formatNumber(data.personalTax)}万亿元，央地60:40分成">
+                    <div class="node-title">个人所得税</div>
+                    <div class="node-amount">${formatNumber(data.personalTax)}万亿</div>
+                    <div class="node-detail">央60% : 地40%</div>
+                </div>
+                
+                <div class="node revenue-node" style="top: 380px; left: 50px;" 
+                     data-info="房地产相关税费（狭义）${formatNumber(data.realEstateTax)}万亿元，地方100%">
+                    <div class="node-title">房地产税费</div>
+                    <div class="node-amount">${formatNumber(data.realEstateTax)}万亿</div>
+                    <div class="node-detail">契税+土增税等5项<br>地100%</div>
+                </div>
+                
+                <div class="node revenue-node" style="top: 480px; left: 50px;" 
+                     data-info="${year}年土地出让金${formatNumber(data.landTransfer)}万亿元">
+                    <div class="node-title">土地出让金</div>
+                    <div class="node-amount">${formatNumber(data.landTransfer)}万亿</div>
+                    <div class="node-detail">${year >= 2021 ? '较2021年' + ((data.landTransfer/8.71-1)*100).toFixed(0) + '%' : '地100%'}</div>
+                </div>
+
+                <!-- 第二层：中央财政 -->
+                <div class="node central-node" style="top: 120px; left: 400px;" 
+                     data-info="${year}年中央一般公共预算收入${formatNumber(data.centralRev)}万亿元">
+                    <div class="node-title">中央一般公共预算</div>
+                    <div class="node-amount">${formatNumber(data.centralRev)}万亿</div>
+                    <div class="node-detail">收入侧</div>
+                </div>
+                
+                <div class="node central-node" style="top: 240px; left: 400px;" 
+                     data-info="中央政府性基金预算收入">
+                    <div class="node-title">中央政府性基金</div>
+                    <div class="node-amount">${(data.fundRev * 0.07).toFixed(2)}万亿</div>
+                    <div class="node-detail">收入侧</div>
+                </div>
+
+                <!-- 第三层：转移支付 -->
+                <div class="node transfer-node" style="top: 180px; left: 650px;" 
+                     data-info="中央对地方转移支付，是地方收入的重要补充">
+                    <div class="node-title">中央对地方<br>转移支付</div>
+                    <div class="node-amount">~${transferPayment}万亿</div>
+                    <div class="node-detail">税收返还+一般性<br>+专项转移支付</div>
+                </div>
+
+                <!-- 第四层：地方财政 -->
+                <div class="node local-node" style="top: 60px; left: 950px;" 
+                     data-info="${year}年地方一般公共预算本级收入${formatNumber(data.localBudget)}万亿元">
+                    <div class="node-title">地方一般公共预算</div>
+                    <div class="node-amount">${formatNumber(data.localBudget)}万亿</div>
+                    <div class="node-detail">本级收入</div>
+                </div>
+                
+                <div class="node local-node" style="top: 160px; left: 950px;" 
+                     data-info="${year}年地方政府性基金收入${formatNumber(data.fundRev)}万亿元">
+                    <div class="node-title">地方政府性基金</div>
+                    <div class="node-amount">${formatNumber(data.fundRev)}万亿</div>
+                    <div class="node-detail">土地出让占${(data.landTransfer/data.fundRev*100).toFixed(0)}%</div>
+                </div>
+                
+                <div class="node local-node" style="top: 260px; left: 950px;" 
+                     data-info="地方国有资本经营预算">
+                    <div class="node-title">地方国资预算</div>
+                    <div class="node-amount">~0.6万亿</div>
+                    <div class="node-detail">国企利润</div>
+                </div>
+                
+                <div class="node local-node" style="top: 360px; left: 950px;" 
+                     data-info="社会保险基金预算，养老医疗等">
+                    <div class="node-title">社保基金预算</div>
+                    <div class="node-amount">${year >= 2020 ? '~11万亿' : '~9万亿'}</div>
+                    <div class="node-detail">养老+医疗+失业等</div>
+                </div>
+
+                <!-- 第五层：债务融资 -->
+                <div class="node debt-node" style="top: 550px; left: 300px;" 
+                     data-info="${year}年国债发行${formatNumber(data.nationalBonds)}万亿元">
+                    <div class="node-title">国债发行</div>
+                    <div class="node-amount">${formatNumber(data.nationalBonds)}万亿</div>
+                    <div class="node-detail">${year >= 2020 ? '含特别国债' : ''}<br>弥补中央赤字</div>
+                </div>
+                
+                <div class="node debt-node" style="top: 550px; left: 580px;" 
+                     data-info="${year}年地方政府债券发行${formatNumber(data.localBonds)}万亿元">
+                    <div class="node-title">地方政府债券</div>
+                    <div class="node-amount">${formatNumber(data.localBonds)}万亿</div>
+                    <div class="node-detail">一般债+专项债<br>新增+再融资</div>
+                </div>
+
+                ${year === 2025 ? `
+                <div class="node debt-node" style="top: 650px; left: 440px;" 
+                     data-info="2025年地方债再融资4.93万亿元，占总发行47.8%">
+                    <div class="node-title">地方债再融资</div>
+                    <div class="node-amount">4.93万亿</div>
+                    <div class="node-detail">占地方债总发行47.8%<br>滚动到期债务</div>
+                </div>
+                ` : ''}
+
+                <!-- 第六层：财政支出 -->
+                <div class="node expenditure-node" style="top: 820px; left: 200px;" 
+                     data-info="中央事权支出，国防外交等">
+                    <div class="node-title">中央事权支出</div>
+                    <div class="node-amount">${(data.budgetExp * 0.13).toFixed(2)}万亿</div>
+                    <div class="node-detail">国防+外交+<br>中央本级</div>
+                </div>
+                
+                <div class="node expenditure-node" style="top: 820px; left: 500px;" 
+                     data-info="地方刚性支出，三保：保民生保工资保运转">
+                    <div class="node-title">地方三保支出</div>
+                    <div class="node-amount">${(data.budgetExp * 0.52).toFixed(2)}万亿</div>
+                    <div class="node-detail">保民生+保工资<br>+保运转</div>
+                </div>
+                
+                <div class="node expenditure-node" style="top: 820px; left: 800px;" 
+                     data-info="地方基建投资，含专项债资金">
+                    <div class="node-title">地方基建投资</div>
+                    <div class="node-amount">${(data.fundRev * 0.7).toFixed(2)}万亿</div>
+                    <div class="node-detail">基础设施+<br>公共服务</div>
+                </div>
+
+                <div class="node expenditure-node" style="top: 820px; left: 1100px;" 
+                     data-info="债务付息支出${formatNumber(data.debtInterest)}万亿">
+                    <div class="node-title">债务付息支出</div>
+                    <div class="node-amount">${formatNumber(data.debtInterest)}万亿</div>
+                    <div class="node-detail">付息率${formatNumber(data.interestRate)}%</div>
+                </div>
+
+                <!-- 关键数据标注 -->
+                <div class="flow-label flow-label-big" style="top: 970px; left: 50px; background: rgba(163, 113, 247, 0.2); border-color: #a371f7;">
+                    <strong>${year}年财政赤字：${formatNumber(data.deficit)}万亿元</strong><br>
+                    <small>= 支出${formatNumber(data.budgetExp)}万亿 − 收入${formatNumber(data.budgetRev)}万亿</small>
+                </div>
+
+                <div class="flow-label flow-label-big" style="top: 970px; left: 500px; background: rgba(163, 113, 247, 0.2); border-color: #a371f7;">
+                    <strong>政府债券合计：${formatNumber(data.totalBonds)}万亿元</strong><br>
+                    <small>国债${formatNumber(data.nationalBonds)}万亿 + 地方债${formatNumber(data.localBonds)}万亿</small><br>
+                    <small>债券/赤字比 = ${(data.totalBonds/data.deficit).toFixed(2)}倍</small>
+                </div>
+
+                <div class="flow-label flow-label-big" style="top: 970px; left: 1000px; background: rgba(88, 166, 255, 0.2); border-color: #58a6ff;">
+                    <strong>土地财政占比</strong><br>
+                    <small>土地出让+房地产税费占地方一般预算</small><br>
+                    <small>${((data.landTransfer + data.realEstateTax) / data.localBudget * 100).toFixed(1)}%</small>
+                </div>
+
+                <!-- SVG连接线 -->
+                <svg class="connection">
+                    <defs>
+                        <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3fb950" />
+                        </marker>
+                        <marker id="arrowhead-cyan" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#39c5cf" />
+                        </marker>
+                        <marker id="arrowhead-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#a371f7" />
+                        </marker>
+                        <marker id="arrowhead-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#fa8c16" />
+                        </marker>
+                    </defs>
+
+                    <!-- 税收分成到中央 -->
+                    <path d="M 200 75 Q 300 75 400 135" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+                    <path d="M 200 155 Q 300 155 400 145" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+                    <path d="M 200 235 Q 300 235 400 155" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+                    <path d="M 200 315 Q 300 315 400 165" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+
+                    <!-- 税收分成到地方 -->
+                    <path d="M 200 75 Q 575 75 950 75" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+                    <path d="M 200 235 Q 575 235 950 85" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+                    <path d="M 200 315 Q 575 315 950 95" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+                    <path d="M 200 395 Q 575 395 950 105" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+                    <path d="M 200 495 Q 575 495 950 175" class="arrow-line solid-line" marker-end="url(#arrowhead-green)" />
+
+                    <!-- 中央转移支付到地方 -->
+                    <path d="M 550 135 Q 650 135 650 195" class="arrow-line transfer-line" marker-end="url(#arrowhead-cyan)" />
+                    <path d="M 650 220 Q 800 220 950 130" class="arrow-line transfer-line" marker-end="url(#arrowhead-cyan)" />
+
+                    <!-- 债务融资到预算 -->
+                    <path d="M 370 550 Q 370 400 465 180" class="arrow-line debt-line" marker-end="url(#arrowhead-purple)" />
+                    <path d="M 650 550 Q 650 400 1010 120" class="arrow-line debt-line" marker-end="url(#arrowhead-purple)" />
+                    <path d="M 650 550 Q 850 400 1010 200" class="arrow-line debt-line" marker-end="url(#arrowhead-purple)" />
+
+                    <!-- 预算到支出 -->
+                    <path d="M 465 180 Q 465 500 270 820" class="arrow-line expenditure-line" marker-end="url(#arrowhead-orange)" />
+                    <path d="M 1010 120 Q 800 470 570 820" class="arrow-line expenditure-line" marker-end="url(#arrowhead-orange)" />
+                    <path d="M 1010 200 Q 900 510 870 820" class="arrow-line expenditure-line" marker-end="url(#arrowhead-orange)" />
+                    <path d="M 1010 280 Q 1010 550 1170 820" class="arrow-line expenditure-line" marker-end="url(#arrowhead-orange)" />
+                </svg>
+
+                <!-- 流向标签 -->
+                <div class="flow-label" style="top: 50px; left: 280px;">税收分成</div>
+                <div class="flow-label" style="top: 50px; left: 575px;">税收留成</div>
+                <div class="flow-label" style="top: 165px; left: 780px;">转移支付</div>
+                <div class="flow-label" style="top: 480px; left: 370px;">国债弥补<br>中央赤字</div>
+                <div class="flow-label" style="top: 480px; left: 650px;">地方债弥补<br>地方缺口</div>
+                <div class="flow-label" style="top: 650px; left: 600px;">财政支出<br>${formatNumber(data.budgetExp)}万亿</div>
+            `;
+
+            // 重新绑定事件
+            bindNodeEvents();
+        }
+
+        function bindNodeEvents() {
+            const nodes = document.querySelectorAll('.node');
+            const tooltip = document.getElementById('tooltip');
+            
+            nodes.forEach(node => {
+                node.addEventListener('mouseenter', function(e) {
+                    const info = this.getAttribute('data-info');
+                    if (info) {
+                        tooltip.innerHTML = info;
+                        tooltip.classList.add('show');
+                        updateTooltipPosition(e);
+                    }
+                });
+
+                node.addEventListener('mousemove', function(e) {
+                    updateTooltipPosition(e);
+                });
+
+                node.addEventListener('mouseleave', function() {
+                    tooltip.classList.remove('show');
+                });
+
+                node.addEventListener('click', function() {
+                    nodes.forEach(n => {
+                        n.style.transform = '';
+                        n.style.filter = '';
+                    });
+                    this.style.transform = 'translateY(-8px) scale(1.1)';
+                    this.style.filter = 'brightness(1.2)';
+                    
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        this.style.filter = '';
+                    }, 2000);
+                });
+            });
+        }
+
+        function updateTooltipPosition(e) {
+            const tooltip = document.getElementById('tooltip');
+            const x = e.pageX + 15;
+            const y = e.pageY + 15;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top = y + 'px';
+        }
+
+        function changeYear(year) {
+            currentYear = year;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.year-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 更新数据
+            updateKeyMetrics(year);
+            updateFlowDiagram(year);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateKeyMetrics(currentYear);
+            updateFlowDiagram(currentYear);
+        });
+    </script>
+
+
+</body></html>
